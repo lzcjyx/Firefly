@@ -1,5 +1,5 @@
-name = "firefly"
-compatibility_date = "2026-06-14" # 更为今日
+name = "lzcjyx-firefly"
+compatibility_date = "2026-06-15"
 
 [assets]
 directory = "./dist"
