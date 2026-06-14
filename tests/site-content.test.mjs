@@ -22,7 +22,7 @@ test("site identity targets lzcjyx.xyz", () => {
 	assert.match(siteConfig, /subtitle:\s*"小说档案"/);
 });
 
-test("template-only pages and widgets are hidden", () => {
+test("template-only pages stay hidden and music is restored", () => {
 	const siteConfig = read("src/config/siteConfig.ts");
 	for (const page of [
 		"friends",
@@ -35,17 +35,17 @@ test("template-only pages and widgets are hidden", () => {
 	}
 
 	const musicConfig = read("src/config/musicConfig.ts");
-	assert.match(musicConfig, /showInNavbar:\s*false/);
+	assert.match(musicConfig, /showInNavbar:\s*true/);
 
 	const sidebarConfig = read("src/config/sidebarConfig.ts");
-	assert.doesNotMatch(sidebarConfig, /type:\s*"music"[\s\S]*enable:\s*true/);
+	assert.match(sidebarConfig, /{\s*type:\s*"music",\s*enable:\s*true/);
 	assert.doesNotMatch(
 		sidebarConfig,
-		/type:\s*"calendar"[\s\S]*enable:\s*true/,
+		/{\s*type:\s*"calendar",\s*enable:\s*true/,
 	);
 	assert.doesNotMatch(
 		sidebarConfig,
-		/type:\s*"siteInfo"[\s\S]*enable:\s*true/,
+		/{\s*type:\s*"siteInfo",\s*enable:\s*true/,
 	);
 });
 
@@ -88,20 +88,36 @@ test("draft filtering is consistent in dev and production", () => {
 	);
 });
 
-test("visible content is novel-publishing focused", () => {
-	const guide = read("src/content/posts/novel-publishing-guide.md");
-	assert.match(guide, /title:\s*"AI 小说 Markdown 发布指南"/);
-	assert.match(guide, /category:\s*"小说"/);
-	assert.match(guide, /draft:\s*false/);
+test("public content hides local publishing guide", () => {
+	const guidePath = path.join(root, "src/content/posts/novel-publishing-guide.md");
+	assert.equal(
+		existsSync(guidePath),
+		false,
+		"local publishing guide must not be a public post",
+	);
+
+	const visiblePosts = walk("src/content/posts")
+		.filter((file) => /\.(md|mdx)$/.test(file))
+		.filter((file) => !/draft:\s*true/.test(read(file)));
+
+	for (const file of visiblePosts) {
+		assert.doesNotMatch(read(file), /AI 小说 Markdown 发布指南/, file);
+	}
 
 	const about = read("src/content/spec/about.md");
 	assert.match(about, /lzcjyx/);
 	assert.match(about, /AI 小说工厂/);
+});
 
-	const visibleDemoFiles = walk("src/content/posts")
-		.filter((file) => /\.(md|mdx)$/.test(file))
-		.filter((file) => file !== path.join("src/content/posts", "novel-publishing-guide.md"))
-		.filter((file) => !/draft:\s*true/.test(read(file)));
+test("icon generator scans Astro pages for empty-state icons", () => {
+	const iconScript = read("scripts/generate-icons.js");
+	assert.match(iconScript, /const SOURCE_EXTENSIONS = \[[^\]]*"\.astro"/);
+	assert.match(iconScript, /name=\["']/);
+	assert.match(iconScript, /<Icon\\b\[\\s\\S\]\*\?\\bname=/);
 
-	assert.deepEqual(visibleDemoFiles, []);
+	const tagsPage = read("src/pages/tags/index.astro");
+	const categoriesPage = read("src/pages/categories/index.astro");
+	assert.doesNotMatch(tagsPage, /material-symbols:tag-off/);
+	assert.match(tagsPage, /material-symbols:label-off-outline-rounded/);
+	assert.match(categoriesPage, /material-symbols:folder-off/);
 });

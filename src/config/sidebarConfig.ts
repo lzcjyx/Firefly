@@ -20,6 +20,12 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 			showOnPostPage: true,
 		},
 		{
+			type: "music",
+			enable: true,
+			position: "top",
+			showOnPostPage: true,
+		},
+		{
 			type: "categories",
 			enable: true,
 			position: "sticky",
@@ -63,6 +69,11 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 		},
 		{
 			type: "announcement",
+			enable: true,
+			showOnPostPage: true,
+		},
+		{
+			type: "music",
 			enable: true,
 			showOnPostPage: true,
 		},
